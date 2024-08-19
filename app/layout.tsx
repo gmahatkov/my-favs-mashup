@@ -19,13 +19,14 @@ export default function RootLayout({
   return (
     <html lang="en">
     <body className={inter.className}>
-      <main className={'min-h-screen'}>
-        <Providers>
-          <AppNavbar />
+      <Providers>
+        <main className={'min-h-screen dark text-foreground bg-background'}>
+          <AppNavbar/>
           {children}
-        </Providers>
-      </main>
+        </main>
+      </Providers>
     </body>
-    </html>
-  );
+</html>
+)
+  ;
 }
