@@ -1,15 +1,26 @@
 import dynamic from "next/dynamic";
 
 const AppTrackList = dynamic(() => import("@/components/AppTrackList"), { ssr: false });
+const AppSelectedTracks = dynamic(() => import("@/components/AppSelectedTracks"), { ssr: false });
 const TrackListProvider = dynamic(() => import("@/providers/TrackListProvider"), { ssr: false });
 const SelectedTracksProvider = dynamic(() => import("@/providers/SelectedTracksProvider"), { ssr: false });
 
 export default function DashboardHome () {
     return (
-        <TrackListProvider>
-            <SelectedTracksProvider>
-                <AppTrackList />
-            </SelectedTracksProvider>
-        </TrackListProvider>
+        <div className={'max-w-4xl mx-auto'}>
+            <TrackListProvider>
+                <SelectedTracksProvider>
+                    <h1 className={'text-4xl mb-6'}>Dashboard</h1>
+                    <h2 className={'text-3xl mb-5'}>Selected Tracks</h2>
+                    <div className={'mb-6'}>
+                        <AppSelectedTracks/>
+                    </div>
+                    <h2 className={'text-3xl mb-5'}>Your favorite tracks</h2>
+                    <div>
+                        <AppTrackList/>
+                    </div>
+                </SelectedTracksProvider>
+            </TrackListProvider>
+        </div>
     )
 }
