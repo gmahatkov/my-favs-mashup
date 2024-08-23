@@ -1,12 +1,15 @@
 import dynamic from "next/dynamic";
 
 const AppTrackList = dynamic(() => import("@/components/AppTrackList"), { ssr: false });
+const TrackListProvider = dynamic(() => import("@/providers/TrackListProvider"), { ssr: false });
+const SelectedTracksProvider = dynamic(() => import("@/providers/SelectedTracksProvider"), { ssr: false });
 
 export default function DashboardHome () {
     return (
-        <div>
-            <h1>Dashboard</h1>
-            <AppTrackList />
-        </div>
+        <TrackListProvider>
+            <SelectedTracksProvider>
+                <AppTrackList />
+            </SelectedTracksProvider>
+        </TrackListProvider>
     )
 }
