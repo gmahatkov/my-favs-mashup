@@ -3,6 +3,7 @@
 import {Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Spinner} from "@nextui-org/react";
 import {useSelectedTracks, useSelectedTracksDispatch} from "@/providers/SelectedTracksProvider";
 import {useTrackList, useTrackListDispatch} from "@/providers/TrackListProvider";
+import {formatDuration} from "@/utils/formatters";
 
 export default function AppTrackList () {
     const selectedTracks = useSelectedTracks();
@@ -47,7 +48,7 @@ export default function AppTrackList () {
                             <TableCell>{track.name}</TableCell>
                             <TableCell>{track.artist}</TableCell>
                             <TableCell>{track.album}</TableCell>
-                            <TableCell>{track.duration}</TableCell>
+                            <TableCell>{formatDuration(track.duration)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>

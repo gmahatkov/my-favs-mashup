@@ -5,6 +5,7 @@ import {useTrackList} from "@/providers/TrackListProvider";
 import {useEffect, useState} from "react";
 import {Track} from "@/types/track";
 import {Table, TableHeader, TableColumn, TableBody, TableRow, TableCell} from "@nextui-org/react";
+import {formatDuration} from "@/utils/formatters";
 
 export default function AppSelectedTracks ()
 {
@@ -47,7 +48,7 @@ export default function AppSelectedTracks ()
                             <TableCell>{track.name}</TableCell>
                             <TableCell>{track.artist}</TableCell>
                             <TableCell>{track.album}</TableCell>
-                            <TableCell>{track.duration}</TableCell>
+                            <TableCell>{formatDuration(track.duration)}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
