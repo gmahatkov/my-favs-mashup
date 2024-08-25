@@ -8,7 +8,7 @@ type ApiFetchParams<P extends Record<string, string | number | boolean> = {}> = 
 
 type ApiFetchReturnType<T> = T;
 
-type ApiFetch = <T extends object, P extends Record<string, string | number | boolean> = {}>(params: ApiFetchParams<P>) => Promise<ApiFetchReturnType<T>>;
+export type ApiFetch = <T extends object, P extends Record<string, string | number | boolean> = {}>(params: ApiFetchParams<P>) => Promise<ApiFetchReturnType<T>>;
 
 export function useApi(basePath: string = ''): [ApiFetch, AbortController] {
     const controller = new AbortController();

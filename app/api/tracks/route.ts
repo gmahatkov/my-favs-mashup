@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
-import {useGetTrackList} from "@/utils/spotify-api";
+import { useGetMashupPrompt, useGetTrackList} from "@/utils/spotify-api";
 
 export const GET = auth(
     async (req: NextRequest): Promise<NextResponse> =>
@@ -8,6 +8,23 @@ export const GET = auth(
         try {
             const data = await useGetTrackList(req);
             return NextResponse.json(data);
+        } catch (error) {
+            console.error(error);
+            return NextResponse.json({
+                error: "Internal Server Error",
+            }, {
+                status: 500
+            });
+        }
+    }
+);
+
+export const POST = auth(
+    async (req: NextRequest): Promise<NextResponse> =>
+    {
+        try {
+            const prompt = await useGetMashupPrompt(req);
+            return NextResponse.json({ prompt });
         } catch (error) {
             console.error(error);
             return NextResponse.json({

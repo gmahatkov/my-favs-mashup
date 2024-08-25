@@ -7,13 +7,14 @@ import {Track} from "@/types/track";
 
 export type TrackListState = {
     list: Track[];
+    selected: Map<string, Track>;
     total: number;
     limit: number;
     page: number;
     loading: boolean;
 }
 
-type TrackListActionType = "setList" | "setTotal" | "setLimit" | "setPage" | "setLoading";
+type TrackListActionType = "setList" | "setSelected" | "setTotal" | "setLimit" | "setPage" | "setLoading";
 
 export type TrackListAction<T extends TrackListActionType> = {
     type: T;
@@ -23,12 +24,14 @@ export type TrackListAction<T extends TrackListActionType> = {
             ? number
             : T extends "setLoading"
                 ? boolean
-                : never;
+                : T extends "setSelected"
+                    ? string[]
+                    : never;
 }
 
 function trackListReducer(
     state: TrackListState,
-    action: TrackListAction<"setList" | "setTotal" | "setLimit" | "setPage" | "setLoading">
+    action: TrackListAction<"setList" | "setSelected" | "setTotal" | "setLimit" | "setPage" | "setLoading">
 ): TrackListState
 {
     switch (action.type) {
@@ -36,6 +39,19 @@ function trackListReducer(
             return {
                 ...state,
                 list: action.payload as Track[],
+            };
+        case "setSelected":
+            return {
+                ...state,
+                selected: new Map(
+                    (action.payload as string[])
+                        .map((id) => (
+                            [id, structuredClone(
+                                (state.list.find((t) => t.id === id) as Track)
+                                ?? state.selected.get(id)
+                            )]
+                        ))
+                ),
             };
         case "setTotal":
             return {
@@ -81,6 +97,7 @@ export function useTrackListDispatch() {
 
 const defaultState: TrackListState = {
     list: [],
+    selected: new Map<string, Track>(),
     total: 0,
     limit: 20,
     page: 1,

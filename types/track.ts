@@ -8,6 +8,8 @@ export interface TrackFeatures {
     speechiness: number;
     tempo: number;
     valence: number;
+    mode: number;
+    key: number;
 }
 
 export interface Track {
@@ -15,6 +17,12 @@ export interface Track {
     name: string;
     album: string;
     artist: string;
+    artistId: string;
     duration: number;
     image: string;
+}
+
+export interface TrackIds {
+    id: string;
+    artistId: string;
 }

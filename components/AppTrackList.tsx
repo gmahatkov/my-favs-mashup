@@ -1,15 +1,28 @@
 'use client';
 
 import {Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Spinner} from "@nextui-org/react";
-import {useSelectedTracks, useSelectedTracksDispatch} from "@/providers/SelectedTracksProvider";
 import {useTrackList, useTrackListDispatch} from "@/providers/TrackListProvider";
 import {formatDuration} from "@/utils/formatters";
+import {useEffect, useState} from "react";
 
 export default function AppTrackList () {
-    const selectedTracks = useSelectedTracks();
-    const selectedTracksDispatch = useSelectedTracksDispatch();
     const trackState = useTrackList();
     const tracksDispatch = useTrackListDispatch();
+
+    const [selectedTracks, setSelectedTracks] = useState<Set<string> | "all">(new Set());
+
+    useEffect(() => {
+        if (selectedTracks === "all") {
+            return tracksDispatch({
+                type: "setSelected",
+                payload: trackState.list.map((t) => t.id),
+            });
+        }
+        tracksDispatch({
+            type: "setSelected",
+            payload: Array.from(selectedTracks),
+        });
+    }, [selectedTracks]);
 
     return (
         <>
@@ -17,7 +30,7 @@ export default function AppTrackList () {
                 selectedKeys={selectedTracks}
                 selectionMode={'multiple'}
                 // @ts-ignore
-                onSelectionChange={selectedTracksDispatch}
+                onSelectionChange={setSelectedTracks}
                 bottomContent={
                     trackState.total > 0 && (
                         <div className="flex w-full justify-center">
