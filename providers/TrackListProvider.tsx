@@ -2,7 +2,7 @@
 
 import {createContext, useContext, useEffect, useReducer, useState} from "react";
 import {useApi} from "@/utils/useApi";
-import {GetTrackListQuery, GetTrackListReturnType} from "@/utils/spotify-api";
+import {GetTrackListQuery, GetTrackListReturnType} from "@/utils/api";
 import {Track} from "@/types/track";
 
 export type TrackListState = {

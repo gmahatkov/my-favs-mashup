@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { auth } from "@/auth";
-import { useGetMashupPrompt, useGetTrackList} from "@/utils/spotify-api";
+import { useGetMashupPrompt, useGetTrackList} from "@/utils/api";
 
 export const GET = auth(
     async (req: NextRequest): Promise<NextResponse> =>
