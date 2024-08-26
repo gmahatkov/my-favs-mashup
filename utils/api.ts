@@ -1,10 +1,10 @@
 "use server";
 
 import {NextRequest} from "next/server";
-import {Track, TrackFeatures, TrackIds} from "@/types/track";
+import {GeneratedTrackInfo, Track, TrackFeatures, TrackIds} from "@/types/track";
 import {getSpotifyToken} from "@/utils/jwt";
 import {ApiFetch, useApi} from "@/utils/useApi";
-import {SPOTIFY_API_BASE} from "@/constants";
+import {AIML_API_BASE, SPOTIFY_API_BASE} from "@/constants";
 
 export type GetTrackListReturnType = {
     list: Track[];
@@ -188,4 +188,41 @@ export async function useGetMashupPrompt(req: NextRequest): Promise<string>
     const feature = processFeature(features);
     const featurePrompt = featureToPrompt(feature);
     return `${featurePrompt}${genres.join(", ")}.`;
+}
+
+export async function useGenerateTrack(req: NextRequest): Promise<any>
+{
+    const headers = {
+        'Authorization': `Bearer ${process.env.AUTH_AIML_API_KEY as string}`,
+        'Content-Type': 'application/json'
+    }
+    const body = await req.json() as { prompt: string };
+    const payload = {
+        prompt: body.prompt,
+        make_instrumental: false,
+        wait_audio: true,
+    }
+    const [api] = useApi(AIML_API_BASE as string);
+    return await api<any>({
+        path: '/generate',
+        method: 'POST',
+        headers,
+        body: payload,
+    });
+}
+
+export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<GeneratedTrackInfo[]>
+{
+    const headers = {
+        'Authorization': `Bearer ${process.env.AUTH_AIML_API_KEY as string}`,
+        'Content-Type': 'application/json'
+    }
+    const body = await req.json() as { ids: string[] };
+    const [api] = useApi(AIML_API_BASE as string);
+    return await api<GeneratedTrackInfo[]>({
+        path: '/generate',
+        method: 'GET',
+        headers,
+        query: body.ids.reduce((acc, cur, idx) => ({ ...acc, [`ids[${idx}]`]: cur }), {}),
+    });
 }
