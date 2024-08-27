@@ -16,15 +16,12 @@ export const { handlers: { GET, POST }, signIn, signOut, auth } = NextAuth({
                     accessToken: account.access_token,
                     refreshToken: account.refresh_token,
                 };
-                console.log("JWT callback token value: ", token);
             }
             return token;
         },
         async session({ session, token, user }) {
             // @ts-ignore
             session.spotify = token.spotify;
-            console.log("Session callback session value: ", session);
-            console.log("Session callback token value: ", token);
             return session;
         },
     },
