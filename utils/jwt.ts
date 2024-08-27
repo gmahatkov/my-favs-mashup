@@ -13,6 +13,7 @@ export async function getSpotifyToken( req: NextRequest): Promise<{ accessToken:
         req,
         secret: process.env.AUTH_SECRET as string,
     })) ?? {}) as { accessToken: string; refreshToken: string };
+    console.log("Spotify token value: ", spotify);
     if (!spotify) throw new SpotifyAccessError();
     return spotify;
 }
