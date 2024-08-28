@@ -27,6 +27,7 @@ export function useApi(basePath: string = ''): [ApiFetch, AbortController] {
                 url.searchParams.append(key, value.toString());
             });
         }
+        console.log('API Fetch: \n', `${url.href}\n${url.searchParams.toString()}\n${JSON.stringify(params.body)}\n${params.method}`);
         const res = await fetch(url, {
             method: params.method ?? "GET",
             headers: {

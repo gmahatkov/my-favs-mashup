@@ -200,11 +200,11 @@ export async function useGenerateTrack(req: NextRequest): Promise<any>
     const payload = {
         prompt: body.prompt,
         make_instrumental: false,
-        wait_audio: true,
+        wait_audio: false,
     }
     const [api] = useApi(AIML_API_BASE as string);
     return await api<any>({
-        path: '/generate',
+        path: '/v1/generate',
         method: 'POST',
         headers,
         body: payload,
@@ -217,12 +217,14 @@ export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<Genera
         'Authorization': `Bearer ${process.env.AUTH_AIML_API_KEY as string}`,
         'Content-Type': 'application/json'
     }
-    const body = await req.json() as { ids: string[] };
+    const ids = req.nextUrl.searchParams.get('ids') as string;
     const [api] = useApi(AIML_API_BASE as string);
     return await api<GeneratedTrackInfo[]>({
-        path: '/generate',
+        path: '/',
         method: 'GET',
         headers,
-        query: body.ids.reduce((acc, cur, idx) => ({ ...acc, [`ids[${idx}]`]: cur }), {}),
+        query: ids
+            .split(',')
+            .reduce((acc, cur, idx) => ({ ...acc, [`ids[${idx}]`]: cur }), {}),
     });
 }

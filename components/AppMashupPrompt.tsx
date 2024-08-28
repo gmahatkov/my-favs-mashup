@@ -2,19 +2,45 @@
 
 import {Button, Textarea} from "@nextui-org/react";
 import {useApi} from "@/utils/useApi";
-import {useState} from "react";
+import {useEffect, useState} from "react";
 import {useTrackList} from "@/providers/TrackListProvider";
 import {GeneratedTrackInfo} from "@/types/track";
-import {sleep} from "@/utils/misc";
+import usePolling from "@/utils/usePolling";
 
 export default function AppMashupPrompt () {
     const trackState = useTrackList();
     const [loading, setLoading] = useState<boolean>(false);
     const [prompt, setPrompt] = useState<string>("");
-    const [info, setInfo] = useState<GeneratedTrackInfo[]>();
+    const [info, setInfo] = useState<GeneratedTrackInfo[]>([]);
     const [api] = useApi(document.location.origin);
 
-    async function loadTrackFeatures () {
+    const [isPolling, startPolling, stopPolling] = usePolling({
+        onSuccess(res) {
+            setInfo(res.data);
+        },
+        onError(error) {
+            console.error(error);
+        },
+        apiFetcher: async () => {
+            return await api<{ data: GeneratedTrackInfo[] }, { ids: string }>({
+                path: "/api/tracks/generate",
+                method: "GET",
+                query: {
+                    ids: info?.map((track) => track.id).join(',') ?? '',
+                },
+            });
+        },
+    });
+
+    useEffect(() => {
+        const allComplete = info?.every((track) => track.status === 'complete' || track.status === 'error' || track.status === 'streaming');
+        if (allComplete) stopPolling();
+        if (info && info.length && !isPolling) startPolling();
+        return () => stopPolling();
+    }, [info, isPolling]);
+
+    async function loadTrackFeatures (): Promise<void>
+    {
         const data = await api<{ prompt: string }>({
             path: "/api/tracks",
             method: "POST",
@@ -27,31 +53,14 @@ export default function AppMashupPrompt () {
         setPrompt(data.prompt);
     }
 
-    async function generateMashup () {
+    async function generateMashup (): Promise<void>
+    {
         const res = await api<{ data: GeneratedTrackInfo[] }>({
             path: "/api/tracks/generate",
             method: "POST",
             body: { prompt },
         });
         setInfo(res.data);
-        await sleep(2000);
-        const startTime = Date.now();
-        const allCompleted = info?.every((track) => track.status === "completed" || track.status === "streaming");
-        const allErrored = info?.every((track) => track.status === "errored");
-        while ((allCompleted || allErrored) && Date.now() - startTime < 60000) {
-            await getGeneratedTrackInfoByIds();
-            await sleep(2000);
-        }
-    }
-
-    async function getGeneratedTrackInfoByIds (): Promise<void>
-    {
-        const res = await api<{ data: GeneratedTrackInfo[] }, { ids: string[] }>({
-            path: "/api/tracks/generate",
-            method: "GET",
-            query: { ids: info?.map((track) => track.id) ?? [] },
-        });
-        if (res.data) setInfo(res.data);
     }
 
     return (
@@ -79,7 +88,7 @@ export default function AppMashupPrompt () {
                 info && (
                     <div>
                         {
-                            info.map((track) => (
+                            (info ?? []).map((track) => (
                                 <div key={track.id}>
                                     <h3>{track.title}</h3>
                                     <audio src={track.audio_url} controls/>
