@@ -16,16 +16,6 @@ export default function AppMashupPrompt () {
 
     const isPollingPersisted = useRef<boolean>(false);
 
-    const pollTrackResults = useCallback(async () => {
-        if (!infoIds) return;
-        const res = await api<{ data: GeneratedTrackInfo[] }, { ids: string }>({
-            path: "/api/tracks/generate",
-            method: "GET",
-            query: { ids: infoIds },
-        });
-        return res.data;
-    }, [info]);
-
     const infoIds = useMemo(() => info?.map((track) => track.id).join(','), [info]);
     const allComplete = useMemo(() =>
         !!info?.length
@@ -34,6 +24,16 @@ export default function AppMashupPrompt () {
             track.status === 'error' ||
             track.status === 'streaming'
         ), [info]);
+
+    const pollTrackResults = useCallback(async () => {
+        if (!infoIds) return;
+        const res = await api<{ data: GeneratedTrackInfo[] }, { ids: string }>({
+            path: "/api/tracks/generate",
+            method: "GET",
+            query: { ids: infoIds },
+        });
+        return res.data;
+    }, [infoIds]);
 
     const [isPolling, startPolling, stopPolling] = usePolling({
         onSuccess: setInfo,
