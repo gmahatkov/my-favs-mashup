@@ -2,7 +2,7 @@
 
 import {Button, Textarea} from "@nextui-org/react";
 import {useApi} from "@/utils/useApi";
-import {useEffect, useState} from "react";
+import {useCallback, useEffect, useRef, useState, useMemo} from "react";
 import {useTrackList} from "@/providers/TrackListProvider";
 import {GeneratedTrackInfo} from "@/types/track";
 import usePolling from "@/utils/usePolling";
@@ -14,30 +14,41 @@ export default function AppMashupPrompt () {
     const [info, setInfo] = useState<GeneratedTrackInfo[]>([]);
     const [api] = useApi(document.location.origin);
 
+    const isPollingPersisted = useRef<boolean>(false);
+
+    const pollTrackResults = useCallback(async () => {
+        if (!infoIds) return;
+        const res = await api<{ data: GeneratedTrackInfo[] }, { ids: string }>({
+            path: "/api/tracks/generate",
+            method: "GET",
+            query: { ids: infoIds },
+        });
+        return res.data;
+    }, [info]);
+
+    const infoIds = useMemo(() => info?.map((track) => track.id).join(','), [info]);
+    const allComplete = useMemo(() =>
+        !!info?.length
+        && info?.every((track) =>
+            track.status === 'complete' ||
+            track.status === 'error' ||
+            track.status === 'streaming'
+        ), [info]);
+
     const [isPolling, startPolling, stopPolling] = usePolling({
-        onSuccess(res) {
-            setInfo(res.data);
-        },
-        onError(error) {
-            console.error(error);
-        },
-        apiFetcher: async () => {
-            return await api<{ data: GeneratedTrackInfo[] }, { ids: string }>({
-                path: "/api/tracks/generate",
-                method: "GET",
-                query: {
-                    ids: info?.map((track) => track.id).join(',') ?? '',
-                },
-            });
-        },
+        onSuccess: setInfo,
+        onError: console.error,
+        apiFetcher: pollTrackResults,
     });
 
     useEffect(() => {
-        const allComplete = info?.every((track) => track.status === 'complete' || track.status === 'error' || track.status === 'streaming');
-        if (allComplete) stopPolling();
-        if (info && info.length && !isPolling) startPolling();
-        return () => stopPolling();
-    }, [info, isPolling]);
+        isPollingPersisted.current = isPolling;
+    }, [isPolling]);
+
+    useEffect(() => {
+        if (!infoIds) return;
+        if (isPollingPersisted.current && allComplete) return stopPolling();
+    }, [infoIds, allComplete]);
 
     async function loadTrackFeatures (): Promise<void>
     {
@@ -61,6 +72,7 @@ export default function AppMashupPrompt () {
             body: { prompt },
         });
         setInfo(res.data);
+        startPolling();
     }
 
     return (

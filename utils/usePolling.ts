@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import {_noop} from "@/utils/misc";
 
 export type PollingConfig = {
@@ -23,7 +23,7 @@ export default function usePolling (config: PollingConfig): UsePollingReturnType
     if (onSuccess === _noop || onError === _noop || apiFetcher === _noop)
         throw new Error('Missing required config values');
 
-    const [polling, setPolling] = useState<boolean>(false);
+    const [isPolling, setIsPolling] = useState<boolean>(false);
 
     const isMounted = useRef<boolean>(true);
     const poll = useRef<ReturnType<typeof setTimeout>>();
@@ -37,20 +37,20 @@ export default function usePolling (config: PollingConfig): UsePollingReturnType
         };
     }, []);
 
+    useEffect(() => {
+        if (isPolling) runPolling();
+    }, [isPolling]);
+
     const startPolling = () =>
     {
-        if (!polling)
-        {
-            setPolling(true);
-            runPolling();
-        }
+        if (!isPolling) setIsPolling(true);
     }
 
     const stopPolling = () =>
     {
-        if (polling && isMounted.current)
+        if (isPolling && isMounted.current)
         {
-            setPolling(false);
+            setIsPolling(false);
             clearTimeout(poll.current);
             poll.current = undefined;
         }
@@ -64,12 +64,12 @@ export default function usePolling (config: PollingConfig): UsePollingReturnType
             {
                 const data = await apiFetcher();
                 onSuccess(data);
-                if (isMounted.current && polling) runPolling();
+                if (isMounted.current && isPolling) runPolling();
             }
             catch (error)
             {
                 onError(error as Error);
-                if (isMounted.current && polling && attempts.current > 0)
+                if (isMounted.current && isPolling && attempts.current > 0)
                 {
                     attempts.current--;
                     runPolling();
@@ -78,5 +78,5 @@ export default function usePolling (config: PollingConfig): UsePollingReturnType
         }, interval);
     }
 
-    return [polling, startPolling, stopPolling];
+    return [isPolling, startPolling, stopPolling];
 }

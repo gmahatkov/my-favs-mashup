@@ -5,6 +5,7 @@ import {GeneratedTrackInfo, Track, TrackFeatures, TrackIds} from "@/types/track"
 import {getSpotifyToken} from "@/utils/jwt";
 import {ApiFetch, useApi} from "@/utils/useApi";
 import {AIML_API_BASE, SPOTIFY_API_BASE} from "@/constants";
+import {sleep} from "@/utils/misc";
 
 export type GetTrackListReturnType = {
     list: Track[];
@@ -209,6 +210,43 @@ export async function useGenerateTrack(req: NextRequest): Promise<any>
         headers,
         body: payload,
     });
+    // await sleep(2000);
+    // return [
+    //     {
+    //         "id": "7b15df6f-f84c-4924-aa4f-9b731a67740a",
+    //         "title": "Echoes of the Abyss",
+    //         "image_url": "",
+    //         "lyric": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
+    //         "audio_url": "",
+    //         "video_url": "",
+    //         "created_at": "2024-08-28T13:42:05.573Z",
+    //         "model_name": "chirp-v3",
+    //         "status": "submitted",
+    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
+    //         "prompt": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
+    //         "type": "gen",
+    //         "tags": "loud minor mode fast progressive rock",
+    //         "duration": null,
+    //         "error_message": null
+    //     },
+    //     {
+    //         "id": "3d974d39-5fe1-4e86-b3aa-090cff50273b",
+    //         "title": "",
+    //         "image_url": "",
+    //         "lyric": "",
+    //         "audio_url": "",
+    //         "video_url": "",
+    //         "created_at": "2024-08-28T13:42:05.573Z",
+    //         "model_name": "chirp-v3",
+    //         "status": "submitted",
+    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
+    //         "prompt": "",
+    //         "type": "gen",
+    //         "tags": null,
+    //         "duration": null,
+    //         "error_message": null
+    //     }
+    // ]
 }
 
 export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<GeneratedTrackInfo[]>
@@ -227,4 +265,41 @@ export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<Genera
             .split(',')
             .reduce((acc, cur, idx) => ({ ...acc, [`ids[${idx}]`]: cur }), {}),
     });
+    // await sleep(2000);
+    // return [
+    //     {
+    //         "id": "7b15df6f-f84c-4924-aa4f-9b731a67740a",
+    //         "title": "Echoes of the Abyss",
+    //         "image_url": "",
+    //         "lyric": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
+    //         "audio_url": "",
+    //         "video_url": "",
+    //         "created_at": "2024-08-28T13:42:05.573Z",
+    //         "model_name": "chirp-v3",
+    //         "status": "submitted",
+    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
+    //         "prompt": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
+    //         "type": "gen",
+    //         "tags": "loud minor mode fast progressive rock",
+    //         "duration": undefined,
+    //         "error_message": undefined
+    //     },
+    //     {
+    //         "id": "3d974d39-5fe1-4e86-b3aa-090cff50273b",
+    //         "title": "",
+    //         "image_url": "",
+    //         "lyric": "",
+    //         "audio_url": "",
+    //         "video_url": "",
+    //         "created_at": "2024-08-28T13:42:05.573Z",
+    //         "model_name": "chirp-v3",
+    //         "status": "submitted",
+    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
+    //         "prompt": "",
+    //         "type": "gen",
+    //         "tags": undefined,
+    //         "duration": undefined,
+    //         "error_message": undefined
+    //     }
+    // ]
 }
