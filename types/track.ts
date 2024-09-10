@@ -1,4 +1,4 @@
-export interface TrackFeatures {
+export interface ITrackFeatures {
     acousticness: number;
     danceability: number;
     energy: number;
@@ -12,7 +12,7 @@ export interface TrackFeatures {
     key: number;
 }
 
-export interface Track {
+export interface ITrack {
     id: string;
     name: string;
     album: string;
@@ -22,12 +22,12 @@ export interface Track {
     image: string;
 }
 
-export interface TrackIds {
+export interface ITrackIds {
     id: string;
     artistId: string;
 }
 
-export interface GeneratedTrackInfo {
+export interface IGeneratedTrackInfo {
     id: string; // Unique identifier for the audio
     title?: string; // Title of the audio
     image_url?: string; // URL of the image associated with the audio

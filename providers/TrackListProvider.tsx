@@ -1,44 +1,46 @@
 'use client';
 
-import {createContext, useContext, useEffect, useReducer, useState} from "react";
-import {useApi} from "@/utils/useApi";
+import {createContext, useContext, useEffect, useReducer} from "react";
+import {createApiFetch} from "@/utils/createApiFetch";
 import {GetTrackListQuery, GetTrackListReturnType} from "@/utils/api";
-import {Track} from "@/types/track";
+import {ITrack} from "@/types/track";
 
 export type TrackListState = {
-    list: Track[];
-    selected: Map<string, Track>;
+    list: ITrack[];
+    selected: Map<string, ITrack>;
     total: number;
     limit: number;
     page: number;
     loading: boolean;
 }
 
-type TrackListActionType = "setList" | "setSelected" | "setTotal" | "setLimit" | "setPage" | "setLoading";
+type TrackListActionType = "setList" | "setSelected" | "setTotal" | "setLimit" | "setPage" | "setLoading" | "clearSelected";
 
 export type TrackListAction<T extends TrackListActionType> = {
     type: T;
     payload: T extends "setList"
-        ? Track[]
+        ? ITrack[]
         : T extends ("setTotal" | "setLimit" | "setPage")
             ? number
             : T extends "setLoading"
                 ? boolean
                 : T extends "setSelected"
                     ? string[]
-                    : never;
+                    : T extends "clearSelected"
+                        ? undefined
+                        : never;
 }
 
 function trackListReducer(
     state: TrackListState,
-    action: TrackListAction<"setList" | "setSelected" | "setTotal" | "setLimit" | "setPage" | "setLoading">
+    action: TrackListAction<TrackListActionType>
 ): TrackListState
 {
     switch (action.type) {
         case "setList":
             return {
                 ...state,
-                list: action.payload as Track[],
+                list: action.payload as ITrack[],
             };
         case "setSelected":
             return {
@@ -47,7 +49,7 @@ function trackListReducer(
                     (action.payload as string[])
                         .map((id) => (
                             [id, structuredClone(
-                                (state.list.find((t) => t.id === id) as Track)
+                                (state.list.find((t) => t.id === id) as ITrack)
                                 ?? state.selected.get(id)
                             )]
                         ))
@@ -73,6 +75,13 @@ function trackListReducer(
                 ...state,
                 loading: action.payload as boolean,
             };
+        case "clearSelected":
+            return {
+                ...state,
+                selected: new Map<string, ITrack>(),
+            };
+        default:
+            return state;
     }
 }
 
@@ -97,7 +106,7 @@ export function useTrackListDispatch() {
 
 const defaultState: TrackListState = {
     list: [],
-    selected: new Map<string, Track>(),
+    selected: new Map<string, ITrack>(),
     total: 0,
     limit: 20,
     page: 1,
@@ -112,7 +121,7 @@ export const TrackListProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         typeof trackListReducer,
         TrackListState
     >(trackListReducer, defaultState, initializer);
-    const [api] = useApi(document.location.origin);
+    const [api] = createApiFetch(document.location.origin);
 
     useEffect(() => {
         loadTracks();

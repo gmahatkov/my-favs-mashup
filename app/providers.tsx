@@ -2,11 +2,11 @@
 'use client'
 
 import {NextUIProvider} from '@nextui-org/react'
+import withProviderHOC from "@/utils/withProviderHOC";
+import {ReactNode} from "react";
 
-export function Providers({children}: { children: React.ReactNode }) {
-    return (
-        <NextUIProvider>
-            {children}
-        </NextUIProvider>
-    )
-}
+const providers = [NextUIProvider]
+
+const WrappedComponent = ({children}: { children: ReactNode }) => (<>{ children }</>)
+
+export const Providers = withProviderHOC(providers)(WrappedComponent)

@@ -3,26 +3,30 @@
 import {Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Pagination, Spinner} from "@nextui-org/react";
 import {useTrackList, useTrackListDispatch} from "@/providers/TrackListProvider";
 import {formatDuration} from "@/utils/formatters";
-import {useEffect, useState} from "react";
+import {useMemo} from "react";
 
 export default function AppTrackList () {
     const trackState = useTrackList();
     const tracksDispatch = useTrackListDispatch();
 
-    const [selectedTracks, setSelectedTracks] = useState<Set<string> | "all">(new Set());
+    const selectedIds = Array.from(trackState.selected.keys()).join('');
 
-    useEffect(() => {
-        if (selectedTracks === "all") {
-            return tracksDispatch({
+    const selectedTracks = useMemo(() => new Set(trackState.selected.keys()), [selectedIds]);
+
+    function setSelectedTracks (selected: Set<string> | "all"): void
+    {
+        if (selected === "all") {
+            tracksDispatch({
                 type: "setSelected",
                 payload: trackState.list.map((t) => t.id),
             });
+            return;
         }
         tracksDispatch({
             type: "setSelected",
-            payload: Array.from(selectedTracks),
+            payload: Array.from(selected),
         });
-    }, [selectedTracks]);
+    }
 
     return (
         <>

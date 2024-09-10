@@ -1,14 +1,14 @@
 "use server";
 
 import {NextRequest} from "next/server";
-import {GeneratedTrackInfo, Track, TrackFeatures, TrackIds} from "@/types/track";
+import {IGeneratedTrackInfo, ITrack, ITrackFeatures, ITrackIds} from "@/types/track";
 import {getSpotifyToken} from "@/utils/jwt";
-import {ApiFetch, useApi} from "@/utils/useApi";
+import {ApiFetch, createApiFetch} from "@/utils/createApiFetch";
 import {AIML_API_BASE, SPOTIFY_API_BASE} from "@/constants";
 import {sleep} from "@/utils/misc";
 
 export type GetTrackListReturnType = {
-    list: Track[];
+    list: ITrack[];
     total: number;
 };
 
@@ -29,7 +29,7 @@ const useSpotifyHeaders = async (req: NextRequest) => {
     };
 }
 
-const spotifySavedTrackObjectToTrack = (obj: SpotifyApi.SavedTrackObject): Track => ({
+const spotifySavedTrackObjectToTrack = (obj: SpotifyApi.SavedTrackObject): ITrack => ({
     id: obj.track.id,
     name: obj.track.name,
     artist: obj.track.artists?.[0]?.name ?? "",
@@ -39,7 +39,7 @@ const spotifySavedTrackObjectToTrack = (obj: SpotifyApi.SavedTrackObject): Track
     artistId: obj.track.artists?.[0]?.id ?? "",
 });
 
-const spotifyAudioFeaturesObjectToTrackFeatures = (obj: SpotifyApi.AudioFeaturesObject): TrackFeatures => ({
+const spotifyAudioFeaturesObjectToTrackFeatures = (obj: SpotifyApi.AudioFeaturesObject): ITrackFeatures => ({
     acousticness: obj.acousticness,
     danceability: obj.danceability,
     energy: obj.energy,
@@ -53,7 +53,7 @@ const spotifyAudioFeaturesObjectToTrackFeatures = (obj: SpotifyApi.AudioFeatures
     key: obj.key,
 });
 
-const processFeature = (features: TrackFeatures[]): TrackFeatures => {
+const processFeature = (features: ITrackFeatures[]): ITrackFeatures => {
     const total = features.length;
     const keys = features
         .map(f => f.key)
@@ -86,7 +86,7 @@ const processFeature = (features: TrackFeatures[]): TrackFeatures => {
     });
 }
 
-const featureToPrompt = (feature: TrackFeatures): string => {
+const featureToPrompt = (feature: ITrackFeatures): string => {
     let prompt = "";
     if (feature.energy > 0.5) {
         prompt += "Fast, loud";
@@ -120,7 +120,7 @@ export async function useGetTrackList(req: NextRequest): Promise<GetTrackListRet
         limit: limit.toString(),
         offset: ((page - 1) * limit).toString(),
     };
-    const [api] = useApi(SPOTIFY_API_BASE);
+    const [api] = createApiFetch(SPOTIFY_API_BASE);
     const res = await api<SpotifyApi.UsersSavedTracksResponse, ListQuery>({
         path: '/me/tracks',
         query,
@@ -133,7 +133,7 @@ export async function useGetTrackList(req: NextRequest): Promise<GetTrackListRet
     };
 }
 
-export async function getTrackFeatures(ids: TrackIds[], headers: Record<string, string>, api: ApiFetch): Promise<TrackFeatures[]>
+export async function getTrackFeatures(ids: ITrackIds[], headers: Record<string, string>, api: ApiFetch): Promise<ITrackFeatures[]>
 {
     const res = await api<SpotifyApi.MultipleAudioFeaturesResponse>({
         path: '/audio-features',
@@ -143,7 +143,7 @@ export async function getTrackFeatures(ids: TrackIds[], headers: Record<string, 
     return res.audio_features.map(spotifyAudioFeaturesObjectToTrackFeatures);
 }
 
-export async function getArtistGenre(ids: TrackIds[], headers: Record<string, string>, api: ApiFetch): Promise<string[]>
+export async function getArtistGenre(ids: ITrackIds[], headers: Record<string, string>, api: ApiFetch): Promise<string[]>
 {
     const artistIds = Array.from(new Set(ids.map(i => i.artistId)));
     const res = await api<SpotifyApi.MultipleArtistsResponse>({
@@ -181,9 +181,9 @@ export async function getArtistGenre(ids: TrackIds[], headers: Record<string, st
 export async function useGetMashupPrompt(req: NextRequest): Promise<string>
 {
     const headers = await useSpotifyHeaders(req);
-    const ids = (await req.json()) as TrackIds[];
+    const ids = (await req.json()) as ITrackIds[];
     if (ids.length < 2) throw new Error("At least 2 tracks are required");
-    const [api] = useApi(SPOTIFY_API_BASE);
+    const [api] = createApiFetch(SPOTIFY_API_BASE);
     const features = await getTrackFeatures(ids, headers, api);
     const genres = await getArtistGenre(ids, headers, api);
     const feature = processFeature(features);
@@ -203,7 +203,7 @@ export async function useGenerateTrack(req: NextRequest): Promise<any>
         make_instrumental: false,
         wait_audio: false,
     }
-    const [api] = useApi(AIML_API_BASE as string);
+    const [api] = createApiFetch(AIML_API_BASE as string);
     return await api<any>({
         path: '/v1/generate',
         method: 'POST',
@@ -213,51 +213,45 @@ export async function useGenerateTrack(req: NextRequest): Promise<any>
     // await sleep(2000);
     // return [
     //     {
-    //         "id": "7b15df6f-f84c-4924-aa4f-9b731a67740a",
-    //         "title": "Echoes of the Abyss",
-    //         "image_url": "",
-    //         "lyric": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
-    //         "audio_url": "",
-    //         "video_url": "",
-    //         "created_at": "2024-08-28T13:42:05.573Z",
-    //         "model_name": "chirp-v3",
-    //         "status": "submitted",
-    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
-    //         "prompt": "[Verse]\nBroken mirrors shattered dreams\nEmpty shadows silent screams\nEchos whisper through the void\nLife's illusion paranoid\n\n[Verse 2]\nStarlit skies a twisted maze\nWalking through this endless haze\nFaces blur in constant fight\nChasing ghosts in dead of night\n\n[Chorus]\nShout to the heavens no one hears\nDrowning in our darkest fears\nLost in time a fleeting spark\nSinking deeper through the dark\n\n[Verse 3]\nLightning cracks across the sky\nMillions suffer always why\nRunning circles no escape\nTangled thoughts like ticker tape\n\n[Bridge]\nWhere's the path that leads to dawn\nIn this night where hope is gone\nSearching blindly through the pain\nPrayers for peace but all in vain\n\n[Verse 4]\nRivers flow with poisoned lies\nTruth obscured by false disguise\nSilent cries for something more\nBroken hearts forever tore",
-    //         "type": "gen",
-    //         "tags": "loud minor mode fast progressive rock",
-    //         "duration": null,
-    //         "error_message": null
-    //     },
-    //     {
-    //         "id": "3d974d39-5fe1-4e86-b3aa-090cff50273b",
+    //         "id": "d1ccde39-0876-4b2a-ba6e-c1cefc39a9db",
     //         "title": "",
-    //         "image_url": "",
     //         "lyric": "",
     //         "audio_url": "",
     //         "video_url": "",
-    //         "created_at": "2024-08-28T13:42:05.573Z",
+    //         "created_at": "2024-09-09T21:49:57.956Z",
     //         "model_name": "chirp-v3",
     //         "status": "submitted",
-    //         "gpt_description_prompt": "Fast, loud, sad, depressed, angry, in minor mode,  fast tempo, album rock, art rock, classic rock, progressive rock, psychedelic rock, rock, symphonic rock, georgian alternative.",
+    //         "gpt_description_prompt": "Fast, loud, rhythmic and danceable, happy, cheerful, euphoric, in major mode,  fast tempo, classic russian rock, russian alternative rock, russian folk rock, russian punk, russian indie.",
     //         "prompt": "",
     //         "type": "gen",
-    //         "tags": null,
-    //         "duration": null,
-    //         "error_message": null
+    //         "image_url": ""
+    //     },
+    //     {
+    //         "id": "eb7e588e-b89f-45cc-9381-db20123349fe",
+    //         "title": "",
+    //         "lyric": "",
+    //         "audio_url": "",
+    //         "video_url": "",
+    //         "created_at": "2024-09-09T21:49:57.956Z",
+    //         "model_name": "chirp-v3",
+    //         "status": "submitted",
+    //         "gpt_description_prompt": "Fast, loud, rhythmic and danceable, happy, cheerful, euphoric, in major mode,  fast tempo, classic russian rock, russian alternative rock, russian folk rock, russian punk, russian indie.",
+    //         "prompt": "",
+    //         "type": "gen",
+    //         "image_url": ""
     //     }
-    // ]
+    // ];
 }
 
-export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<GeneratedTrackInfo[]>
+export async function useGetGeneratedTrackInfo(req: NextRequest): Promise<IGeneratedTrackInfo[]>
 {
     const headers = {
         'Authorization': `Bearer ${process.env.AUTH_AIML_API_KEY as string}`,
         'Content-Type': 'application/json'
     }
     const ids = req.nextUrl.searchParams.get('ids') as string;
-    const [api] = useApi(AIML_API_BASE as string);
-    return await api<GeneratedTrackInfo[]>({
+    const [api] = createApiFetch(AIML_API_BASE as string);
+    return await api<IGeneratedTrackInfo[]>({
         path: '/',
         method: 'GET',
         headers,

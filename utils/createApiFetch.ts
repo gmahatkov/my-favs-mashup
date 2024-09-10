@@ -12,7 +12,7 @@ type QueryParams = Record<string, string | number | boolean | Array<string | num
 
 export type ApiFetch = <T extends object, P extends QueryParams = {}>(params: ApiFetchParams<P>) => Promise<ApiFetchReturnType<T>>;
 
-export function useApi(basePath: string = ''): [ApiFetch, AbortController] {
+export function createApiFetch(basePath: string = ''): [ApiFetch, AbortController] {
     const controller = new AbortController();
     const signal = controller.signal;
     const api: ApiFetch = async function<
