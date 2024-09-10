@@ -1,5 +1,6 @@
 import {Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button} from "@nextui-org/react";
 import { auth, signIn, signOut } from "@/auth";
+import IconBrand from "@/components/icons/IconBrand";
 
 export default async function AppNavbar() {
     const session = await auth();
@@ -17,7 +18,8 @@ export default async function AppNavbar() {
     return (
         <Navbar shouldHideOnScroll>
             <NavbarBrand>
-                <h4>My Fav Mashup</h4>
+                <IconBrand size={50} />
+                <h4 className={'ml-2'}>My Fav Mashup</h4>
             </NavbarBrand>
             <NavbarContent justify={'end'}>
                 <form
